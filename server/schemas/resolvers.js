@@ -29,7 +29,17 @@ const resolvers = {
                 .populate('friends')
                 .populate('thoughts');
         },
+        me: async (parent, args, context) => {
+            if (context.user) {
+                const userData = await User.findOne({ _id: context.user._id })
+                    .select('-__v -password')
+                    .populate('thoughts')
+                    .populate('friends');
 
+                return userData;
+            }
+            throw new AuthenticationError('Not logged in');
+        }
 
     },
     Mutation: {
@@ -52,6 +62,51 @@ const resolvers = {
             }
             const token = signToken(user);
             return { token, user };
+        },
+        //only logged-in users should be able to use this mutation to add a thought...
+        addThought: async (parent, args, context) => {
+            if (context.user) {
+                const thought = await Thought.create({ ...args, username: context.user.username });
+
+                await User.findByIdAndUpdate(
+                    { _id: context.user._id },
+                    { $push: { thoughts: thought._id } },
+                    //new: true makes Mongo return the updated doc instead of original
+                    { new: true }
+                );
+                return thought;
+            }
+            throw new AuthenticationError('you have to login, bitch!');
+        },
+        addReaction: async (parent, { thoughtId, reactionBody }, context) => {
+            if (context.user) {
+                const updatedThought = await Thought.findOneAndUpdate(
+                    { _id: thoughtId },
+                    //Reactions are stored as arrays on the Thought model, so you'll use the Mongo $push operator
+                    { $push: { reactions: { reactionBody, username: context.user.username } } },
+                    { new: true, runValidators: true }
+                );
+
+                return updatedThought;
+            }
+            throw new AuthenticationError('you have to login, bitch!');
+        },
+        //This mutation will look for an incoming friendId and add that 
+        // to the current user's friends array. A user can't be friends with 
+        // the same person twice, though, hence why we're using the $addToSet 
+        // operator instead of $push to prevent duplicate entries.
+        addFriend: async (parent, { friendId }, context) => {
+            if (context.user) {
+                const updatedUser = await User.findOneAndUpdate(
+                    { _id: context.user._id },
+                    { $addToSet: { friends: friendId } },
+                    { new: true }
+                ).populate('friends');
+
+                return updatedUser;
+            }
+            throw new AuthenticationError('you have to login, bitch!');
+
         }
     }
 };
