@@ -2,8 +2,9 @@
   "name": "mern-server",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "server/server.js",
   "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "if-env NODE_ENV=production && npm run start:prod || npm run start:dev",
     "start:prod": "cd server && npm start",
     "start:dev": "concurrently \"cd server && npm run watch\" \"cd client && npm start\"",
@@ -11,6 +12,7 @@
     "seed": "cd server && npm run seed",
     "heroku-postbuild": "cd client && npm run build"
   },
+  
   "keywords": [],
   "author": "",
   "license": "ISC",
