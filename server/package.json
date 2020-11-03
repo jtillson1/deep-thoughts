@@ -8,7 +8,6 @@
     "watch": "nodemon",
     "seed": "node seeders/seeds.js"
   },
-  
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -22,6 +21,6 @@
     "mongoose": "^5.9.9"
   },
   "devDependencies": {
-    "nodemon": "^2.0.3"
+    "nodemon": "^2.0.6"
   }
 }
